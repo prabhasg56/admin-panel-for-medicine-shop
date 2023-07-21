@@ -18,12 +18,16 @@ const MedicineForm = () => {
       price = priceRef.current.value,
       quantity = quantityRef.current.value;
 
+   if(mdName && description && price && quantity) {
     cartCtx._currentValue.addItems({
       mdName: mdName,
       description: description,
       price: price,
       quantity: quantity,
     });
+   } else{
+    alert('Please enter medicine details!')
+   }
 
     mdNameRef.current.value = "";
     descriptionRef.current.value = "";

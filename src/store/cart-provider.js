@@ -8,8 +8,7 @@ const CartProvider = (props) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [dummy, setDummy] = useState(0);
 
-  const baseUrl =
-    "https://crudcrud.com/api/ceed74a1b4454ed89a7a7cfa49a6646d/";
+  const baseUrl = "https://crudcrud.com/api/d2cea1771c5340cf86c7c31cb3fde3a5/";
 
   const fetchMedicine = async () => {
     try {
@@ -17,6 +16,7 @@ const CartProvider = (props) => {
 
       if (response.status === 200) {
         setItems(response.data);
+        return response;
       } else {
         throw new Error("Somthing went wrong!");
       }
@@ -44,72 +44,44 @@ const CartProvider = (props) => {
     } catch (error) {
       console.log(error);
     }
-
   };
 
   useEffect(() => {
     fetchMedicine();
-  },[dummy])
+  }, [dummy]);
 
   useEffect(() => {
     fetchCartItems();
-  },[dummy])
+  }, [dummy]);
 
-  const addItems = async (item) => {
+  const addItems = async (currItem) => {
     try {
-      const response = await axios.post(`${baseUrl}medicine`, {
-        name: item.mdName,
-        description: item.description,
-        price: item.price,
-        quantity: item.quantity,
-      });
-
-      if (response.status === 201) {
-        alert("Added successfully!");
-      } else {
-        throw new Error("Something went wrong!");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-
-    setDummy(dummy + 1);
-  };
-
-  const addToCart = async(currItem) => {
-    
-    try {
-
-      const response = await fetchCartItems();
+      const medicineStock = await fetchMedicine();
 
       let updatedPrice, updatedQuantity, existingMedicineId;
-      response.data.findIndex((item) => {
-        console.log(item._id +"=== "+currItem._id)
-        if(item.name === currItem.name){
-          updatedQuantity = item.quantity + 1;
-          updatedPrice = Number(item.price) + Number(currItem.price);
+      medicineStock.data.findIndex((item) => {
+        if (item.name === currItem.mdName) {
+          updatedQuantity = Number(item.quantity) + Number(currItem.quantity);
+          updatedPrice = Number(currItem.price);
           existingMedicineId = item._id;
-        } 
-      })
+        }
+      });
+      console.log("esist", updatedPrice);
 
-      if(existingMedicineId){
-        console.log('aaaya', existingMedicineId)
+      if (existingMedicineId) {
+        console.log("esist", updatedPrice);
         try {
-          const response = await axios.put(`${baseUrl}cart/${existingMedicineId}`, {
-            name: currItem.name,
-            description: currItem.description,
-            price: updatedPrice,
-            quantity: updatedQuantity,
-          });
+          const updatedTotalMedicine = await axios.put(
+            `${baseUrl}medicine/${existingMedicineId}`,
+            {
+              name: currItem.mdName,
+              description: currItem.description,
+              price: updatedPrice,
+              quantity: updatedQuantity,
+            }
+          );
 
-         const updatedTotalMedicine = await axios.put(`${baseUrl}medicine/${currItem._id}`, {
-            name: currItem.name,
-            description: currItem.description,
-            price: currItem.price,
-            quantity: Number(currItem.quantity) -1,
-          });
-    
-          if (response.status === 200) {
+          if (updatedTotalMedicine.status === 200) {
             alert("Added successfully!");
           } else {
             throw new Error("Something went wrong!");
@@ -117,15 +89,15 @@ const CartProvider = (props) => {
         } catch (error) {
           console.log(error);
         }
-      } else{
+      } else {
         try {
-          const response = await axios.post(`${baseUrl}cart`, {
-            name: currItem.name,
+          const response = await axios.post(`${baseUrl}medicine`, {
+            name: currItem.mdName,
             description: currItem.description,
             price: currItem.price,
-            quantity: 1,
+            quantity: currItem.quantity,
           });
-    
+
           if (response.status === 201) {
             alert("Added successfully!");
           } else {
@@ -135,24 +107,91 @@ const CartProvider = (props) => {
           console.log(error);
         }
       }
-      
-     
+    } catch (error) {
+      console.log(error);
+    }
+
+    setDummy(dummy + 1);
+  };
+
+  const addToCart = async (currItem) => {
+    try {
+      const response = await fetchCartItems();
+
+      let updatedPrice, updatedQuantity, existingMedicineId;
+      response.data.findIndex((item) => {
+        if (item.name === currItem.name) {
+          updatedQuantity = item.quantity + 1;
+          updatedPrice = Number(item.price) + Number(currItem.price);
+          existingMedicineId = item._id;
+        }
+      });
+
+      if (existingMedicineId) {
+        console.log("aaaya", existingMedicineId);
+        try {
+          const response = await axios.put(
+            `${baseUrl}cart/${existingMedicineId}`,
+            {
+              name: currItem.name,
+              description: currItem.description,
+              price: updatedPrice,
+              quantity: updatedQuantity,
+            }
+          );
+
+          const updatedTotalMedicine = await axios.put(
+            `${baseUrl}medicine/${currItem._id}`,
+            {
+              name: currItem.name,
+              description: currItem.description,
+              price: currItem.price,
+              quantity: Number(currItem.quantity) - 1,
+            }
+          );
+
+          if (response.status === 200) {
+            alert("Added successfully!");
+          } else {
+            throw new Error("Something went wrong!");
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        try {
+          const response = await axios.post(`${baseUrl}cart`, {
+            name: currItem.name,
+            description: currItem.description,
+            price: currItem.price,
+            quantity: 1,
+          });
+
+          if (response.status === 201) {
+            alert("Added successfully!");
+          } else {
+            throw new Error("Something went wrong!");
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
     } catch (error) {
       console.log(error);
     }
 
     setDummy(dummy - 1);
-  }
+  };
 
   const cartContext = React.createContext({
     items: items,
     cartItems: cartItems,
-    totalAmount : totalAmount,
+    totalAmount: totalAmount,
     addItems: addItems,
-    addToCart: addToCart
+    addToCart: addToCart,
   });
 
-  console.log(totalAmount)
+  console.log(totalAmount);
   return (
     <CartContext.Provider value={cartContext}>
       {props.children}
