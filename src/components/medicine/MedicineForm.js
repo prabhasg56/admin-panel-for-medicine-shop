@@ -24,11 +24,11 @@ const MedicineForm = () => {
       price: price,
       quantity: quantity,
     });
-    
+
     mdNameRef.current.value = "";
     descriptionRef.current.value = "";
-    priceRef.current.value = 0;
-    quantityRef.current.value = 0;
+    priceRef.current.value = '';
+    quantityRef.current.value = '';
   };
 
   return (
@@ -76,7 +76,7 @@ const MedicineForm = () => {
           style={{ height: "2.5rem", marginTop: "2rem", marginLeft: "1rem" }}
           onClick={(e) => onSubmitHandler(e)}
         >
-          Add to Cart
+          Add product
         </Button>
       </Form>
     </>
